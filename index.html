@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Draggable Canvas</title>
+  <style>
+    
+    #canvas {
+      border: 1px solid rgb(0, 0, 0);
+      cursor: move;
+      position: absolute; /* Added position absolute */
+    }
+
+    #positionPane {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;  
+    }
+
+    #paintingZone {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 512px;
+      height: 512px;
+      background-color: transparent;
+      border: 2px dashed lightgray;
+      pointer-events: none;
+    }
+
+  </style>
+</head>
+<body>
+  <P>Drag the canvas around. Press "p" to paint.</P>
+
+  <div id="canvasContainer" style="position: relative;">
+    <canvas id="canvas" width="2000" height="2000"></canvas>  
+  </div>
+
+  <div id="positionPane">Position: (0, 0)</div>
+
+  <div id="paintingZone"></div>
+
+  <script>
+    // Function to download the image and inject it into the canvas
+    function loadImage() {
+      var canvas = document.getElementById('canvas');
+      var context = canvas.getContext('2d');
+
+      // Create a new image object
+      var img = new Image();
+
+      // Set the source URL of the image
+      var imageUrl = 'https://via.placeholder.com/512x512.png';
+      img.src = imageUrl;
+
+      // When the image is loaded, draw it on the canvas
+      img.onload = function() {
+        // Clear the canvas
+        context.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw the image on the canvas
+        context.drawImage(img, 0, 0);
+      };
+    }
+
+    // Call the loadImage function
+    loadImage();
+
+// Function to calculate the positional delta between two elements
+function calculatePositionDelta(element1, element2) {
+  var rect1 = element1.getBoundingClientRect();
+  var rect2 = element2.getBoundingClientRect();
+
+  var deltaX = rect2.left - rect1.left;
+  var deltaY = rect2.top - rect1.top;
+
+  return {
+    x: deltaX,
+    y: deltaY
+  };
+}
+
+// Update position pane
+function updatePositionPane() {
+  var canvas = document.getElementById('canvas');
+  var paintingZone = document.getElementById('paintingZone');
+  var positionPane = document.getElementById('positionPane');
+
+  var delta = calculatePositionDelta(canvas, paintingZone);
+  positionPane.textContent = 'Position Delta: (' + delta.x + ', ' + delta.y + ')';
+}
+
+// Call the updatePositionPane function initially
+updatePositionPane();
+
+// Make the canvas draggable
+var canvas = document.getElementById('canvas');
+var canvasContainer = document.getElementById('canvasContainer');
+var isDragging = false;
+var dragStartX, dragStartY;
+
+canvas.addEventListener('mousedown', function(event) {
+  isDragging = true;
+  dragStartX = event.clientX - canvas.offsetLeft;
+  dragStartY = event.clientY - canvas.offsetTop;
+});
+
+canvas.addEventListener('mousemove', function(event) {
+  if (isDragging) {
+    var offsetX = event.clientX - dragStartX;
+    var offsetY = event.clientY - dragStartY;
+    canvas.style.left = offsetX + 'px';
+    canvas.style.top = offsetY + 'px';
+
+    // Update position pane
+    updatePositionPane();
+  }
+});
+
+canvas.addEventListener('mouseup', function() {
+  isDragging = false;
+});
+
+// Function to draw a randomly colored square on the canvas
+function drawRandomSquare(canvas, offsetX, offsetY) {
+  var context = canvas.getContext('2d');
+
+  // Generate random RGB values for the square color
+  var red = Math.floor(Math.random() * 256);
+  var green = Math.floor(Math.random() * 256);
+  var blue = Math.floor(Math.random() * 256);
+
+  // Set the fill style to the random color
+  context.fillStyle = 'rgb(' + red + ', ' + green + ', ' + blue + ')';
+
+  // Draw the square at the specified offset
+  context.fillRect(offsetX, offsetY, 512, 512);
+}
+
+// Event listener for key press
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'p') {
+    var canvas = document.getElementById('canvas');
+    var positionPane = document.getElementById('positionPane');
+    var offsetX = parseInt(positionPane.textContent.split('(')[1].split(',')[0]);
+    var offsetY = parseInt(positionPane.textContent.split(',')[1].split(')')[0]);
+
+    drawRandomSquare(canvas, offsetX, offsetY);
+  } else if (event.key === 'd') {
+    var canvas = document.getElementById('canvas');
+    var link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = 'canvas_image.png';
+    link.click();
+  }
+});
+
+
+
+  </script>
+</body>
+</html
